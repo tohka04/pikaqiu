@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>皮卡丘推箱子</title>
+	</head>
+	
+	<body>
+	<script>
+		//地图
+		let omap;
+		//游戏
+		let game;
+		//操作的步数
+		let step = 0;
+
+		//地图的构造函数
+		function Map() {
+				//0:石砖 1:墙 3:目的地 4:箱子 5:皮卡丘 7:箱子和目的地重合 8:人和目的地重合 9:空地
+				this.mapstyle =
+				//二维数组
+				[
+					[1,1,1,1,1,1,1,9,9],
+					[1,0,0,0,0,0,1,9,9],
+					[1,0,4,4,4,1,1,9,9],
+					[1,0,0,1,3,3,1,1,1],
+					[1,1,0,0,3,3,4,0,1],
+					[9,1,0,5,0,0,0,0,1],
+					[9,1,1,1,1,1,1,1,1]
+				]
+			/*this.mapstyle = [
+				[1, 1, 1, 1, 1, 1, 1, 1, 1],
+				[1, 0, 0, 0, 0, 0, 0, 0, 1],
+				[1, 4, 4, 4, 0, 4, 4, 4, 1],
+				[1, 3, 3, 3, 3, 3, 3, 3, 1],
+				[1, 3, 3, 3, 0, 3, 3, 3, 1],
+				[1, 4, 4, 4, 4, 4, 4, 4, 1],
+				[1, 0, 0, 0, 5, 0, 0, 0, 1],
+				[1, 1, 1, 1, 1, 1, 1, 1, 1]
+			];*/
+			/*this.mapstyle = [
+				[0, 0, 1, 1, 1, 1, 1, 0, 0],
+				[0, 0, 1, 0, 5, 0, 1, 0, 0],
+				[0, 0, 1, 0, 4, 0, 1, 0, 0],
+				[1, 1, 1, 0, 3, 0, 1, 1, 1],
+				[1, 0, 0, 0, 7, 0, 0, 0, 1],
+				[1, 0, 7, 7, 7, 7, 7, 0, 1],
+				[1, 0, 0, 0, 7, 0, 0, 0, 1],
+				[1, 1, 1, 4, 7, 4, 1, 1, 1],
+				[0, 0, 1, 0, 3, 0, 1, 0, 0],
+				[0, 0, 1, 0, 7, 0, 1, 0, 0],
+				[0, 0, 1, 0, 3, 0, 1, 0, 0],
+				[0, 0, 1, 1, 1, 1, 1, 0, 0]
+			]*/
+			//0:石砖 1:墙 3:目的地 4:箱子 5:皮卡丘 7:箱子和目的地重合 8:人和目的地重合
+			//获取二维数组的外层的长度
+			this.length1 = this.mapstyle.length;
+			//获取二维数组内层的长度
+			this.length2 = this.mapstyle[0].length;
+			
+			//显示地图
+			this.show = function() {
+				document.getElementsByTagName("body")[0].innerHTML = "";
+				
+				//二维数组
+				for(let i = 0; i < this.length1; i++) {
+					for(let j = 0; j < this.length2; j++) {
+						//判断地图的每一格子里面对应的画面
+						switch(this.mapstyle[i][j]) {
+							case 0:
+								//打印石砖  
+								document.write('<div style="width:45px; height:45px; background:url(img/diban.png); display:inline-block;"></div>');
+								break;
+							case 1:
+								//打印墙壁																	
+								document.write('<div style="width:45px; height:45px; background:url(img/wall.jpg); display:inline-block;"></div>');
+								break;
+							case 3:
+								//打印目的地
+								document.write('<div style="width:45px; height:45px; background:url(img/mudidi.png); background-position:50% 50%; background-size:100%; display:inline-block;"></div>');
+								break;
+							case 4:
+								//打印箱子图片
+								document.write('<div style="width:45px; height:45px; background:url(img/box.png); display:inline-block;"></div>');
+								break;
+							case 5:
+								//打印人物角色
+								document.write('<div style="width:45px; height:45px; background:url(img/renwu.png); background-position:50% 50%; background-size:100%; display:inline-block;"></div>');
+								break;
+							case 7:
+								//打印箱子和目的地重合图片
+								document.write('<div style="width:45px; height:45px; background:url(img/mudidi_over.png); display:inline-block;"></div>');
+								break;
+							case 8:
+								//打印人物与目的地重合的图片
+								document.write('<div style="width:45px; height:45px; background:url(img/renwu.png); background-position:50% 50%; background-size:100%; display:inline-block;"></div>');
+								break;
+							case 9:
+								//打印空白处
+								document.write('<div style="width:45px; height:45px; display:inline-block; "></div>');
+								break;
+						}
+					}
+					document.write("<br/>");
+				}
+			}
+		}
+
+		//游戏的构造函数
+		function Game() {
+			//目标
+			let flag = 0;
+			//结果
+			let result = 0;
+			
+			//判断地图里面设置了多少"目的地"
+			//为后面的是否可以通过作准备。
+			for(let i = 0; i < omap.length1; i++) {
+				for(let j = 0; j < omap.length2; j++) {
+					if(omap.mapstyle[i][j] == 3) {
+						flag++;
+					}
+				}
+			}
+			console.log("目的地数量 = " + flag);
+
+			this.play = function(code) {
+				//皮卡丘的移动
+				for(var i = 0; i < omap.length1; i++) {
+					for(var j = 0; j < omap.length2; j++) {
+						if(omap.mapstyle[i][j] == 5 || omap.mapstyle[i][j] == 8) {
+							//console.log('执行终止内层循环');
+							break;
+						}
+					}
+					if(omap.mapstyle[i][j] == 5 || omap.mapstyle[i][j] == 8) {
+						//console.log('执行终止外层循环');
+						break;
+					}
+				}
+				//键盘 上下左右 方向键bai的键码（keyCode）是38、40、37和39
+				//或者称虚拟ASCII值是38、40、37和39
+				//参考: http://baike.baidu.com/link?url=z9Q9IcvNHtfWAcNwsIGH1d5tfJPLBT8JFxhO2btWaxDNYTnXujcRhjWApwSsoNPuyFKP1nZuS2LREZy-otw_Gm64LFqTa1G__-CtMh64CxQ0l3NzI50QTsQcRv8PA7hYpTdGhyab6c-uZg1d2vWdGK
+				//0:空地 1:墙 3:目的地 4:箱子 5:皮卡丘 7:箱子和目的地重合 8:人和目的地重合
+				switch(code) {
+					case 37: //左
+						//move();
+						//判断是空地或者是目的地的时候,
+						if(omap.mapstyle[i][j - 1] == 0 || omap.mapstyle[i][j - 1] == 3) {
+							//改变我们要去的格子的数值 +=5
+							omap.mapstyle[i][j - 1] += 5;
+							//改变我们当前格子的数值 -=5
+							omap.mapstyle[i][j] -= 5;
+						} else if(omap.mapstyle[i][j - 1] == 7 || omap.mapstyle[i][j - 1] == 4) {
+							if(omap.mapstyle[i][j - 2] == 0 || omap.mapstyle[i][j - 2] == 3) {
+								//改变[i][j -2]号格子  变成有箱子 或者是 箱子和目的地重合
+								omap.mapstyle[i][j - 2] += 4;
+								//改变[i][j - 1]号给自 变成皮卡丘或者是 皮卡丘和目的地重合的状态
+								omap.mapstyle[i][j - 1] += 1;
+								//改变[i][j]号格子里面的数值 -= 5 变成空格
+								omap.mapstyle[i][j] -= 5;
+							}
+						}
+						break;
+					case 38: //上
+						//move();
+						if(omap.mapstyle[i - 1][j] == 0 || omap.mapstyle[i - 1][j] == 3) {
+							omap.mapstyle[i - 1][j] += 5;
+							omap.mapstyle[i][j] -= 5;
+						} else if(omap.mapstyle[i - 1][j] == 7 || omap.mapstyle[i - 1][j] == 4) {
+							if(omap.mapstyle[i - 2][j] == 0 || omap.mapstyle[i - 2][j] == 3) {
+								omap.mapstyle[i - 2][j] += 4;
+								omap.mapstyle[i - 1][j] += 1;
+								omap.mapstyle[i][j] -= 5;
+							}
+						}
+						break;
+					case 40: //下
+						//move();
+						if(omap.mapstyle[i + 1][j] == 0 || omap.mapstyle[i + 1][j] == 3) {
+							omap.mapstyle[i + 1][j] += 5;
+							omap.mapstyle[i][j] -= 5;
+						} else if(omap.mapstyle[i + 1][j] == 7 || omap.mapstyle[i + 1][j] == 4) {
+							if(omap.mapstyle[i + 2][j] == 0 || omap.mapstyle[i + 2][j] == 3) {
+								omap.mapstyle[i + 2][j] += 4;
+								omap.mapstyle[i + 1][j] += 1;
+								omap.mapstyle[i][j] -= 5;
+							}
+						}
+						break;
+					case 39: //右	
+						//move();	
+						if(omap.mapstyle[i][j + 1] == 0 || omap.mapstyle[i][j + 1] == 3) {
+							omap.mapstyle[i][j + 1] += 5;
+							omap.mapstyle[i][j] -= 5;
+						} else if(omap.mapstyle[i][j + 1] == 7 || omap.mapstyle[i][j + 1] == 4) {
+							if(omap.mapstyle[i][j + 2] == 0 || omap.mapstyle[i][j + 2] == 3) {
+								omap.mapstyle[i][j + 2] += 4;
+								omap.mapstyle[i ][j + 1] += 1;
+								omap.mapstyle[i][j] -= 5;
+							}
+						}
+						break;
+				}
+				
+				/*function move(){
+					if(omap.mapstyle[i][j + 1] == 0 || omap.mapstyle[i][j + 1] == 3) {
+							omap.mapstyle[i][j + 1] += 5;
+							omap.mapstyle[i][j] -= 5;
+						} else if(omap.mapstyle[i][j + 1] == 7 || omap.mapstyle[i][j + 1] == 4) {
+							if(omap.mapstyle[i][j + 2] == 0 || omap.mapstyle[i][j + 2] == 3) {
+								omap.mapstyle[i][j + 2] += 4;
+								omap.mapstyle[i][j + 1] += 1;
+								omap.mapstyle[i][j] -= 5;
+							}
+						}
+				}*/
+				
+				//每执行一次操作刷新一下页面。
+				omap.show();
+				
+				//判断箱子和目的地重合的数量
+				for(let i = 0; i < omap.length1; i++) {
+					for(let j = 0; j < omap.length2; j++) {
+						if(omap.mapstyle[i][j] == 7) {
+							result++;
+						}
+					}
+				}
+				
+				//判断是否可以通关
+				if(flag == result) {
+					//延迟执行弹框,提示过关;
+					setTimeout(()=>{
+						alert("恭喜通关,你总共走了" + step + "步");
+					},1000);
+				} else {
+					//重置
+					result = 0;
+				}
+			}
+		}
+		
+		//window.onload() 通常用于 <body> 元素，在页面完全载入后(包括图片、css文件等等)执行脚本代码。
+		window.onload = function() {
+			//生成地图的实例对象
+			omap = new Map();
+			//初始化游戏界面 刷新显示页面
+			omap.show();
+			
+			//生成游戏对象的实例
+			game = new Game();
+			
+			//点击事件的处理
+			function clickEvent() {
+				//做一个浏览器的兼容
+				if(window.event) {
+					code = window.event.keyCode;
+				} else {
+					code = event.keyCode;
+				}
+				//传递键盘的点击进入移动的对象中去
+				game.play(code);
+				//每点击一次键盘,就执行一次步数的增加
+				step++;
+				//console.log(step);
+			}
+			//注册点击键盘的事件
+			document.onkeydown = clickEvent;
+		}
+		
+	</script>
+
+	</body>
+</html>
